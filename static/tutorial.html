@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozmo Tutorial</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .tutorial-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .code-box {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-family: monospace;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        .run-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .run-button:hover {
+            background-color: #0056b3;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="tutorial-container">
+        <a href="/" class="back-link">← Back to Control Panel</a>
+
+        <h1>👋 Let's Teach Cozmo Together!</h1>
+
+        <p>
+            Welcome, young explorer! Today you’ll get to teach your robot friend Cozmo how to move, dance, light up, and play fun animations.
+            Just type a few commands and watch him go!
+        </p>
+
+        <h2>Step 1: What Can Cozmo Do?</h2>
+        <p>Here are the simple magic words (commands) you can use to control Cozmo:</p>
+        <ul>
+            <li><code>forward</code> – Move ahead</li>
+            <li><code>backward</code> – Move back</li>
+            <li><code>turn_left</code> – Spin to the left</li>
+            <li><code>turn_right</code> – Spin to the right</li>
+            <li><code>stop</code> – Freeze in place</li>
+            <li><code>light_on</code> / <code>light_off</code> – Glow or turn off Cozmo’s backpack lights</li>
+            <li><code>anim_happy</code> / <code>anim_angry</code> / <code>anim_look</code> – Make Cozmo act out a feeling</li>
+        </ul>
+
+        <h2>Step 2: Write Your Mini Program</h2>
+        <p>
+            Type a list of commands below — one per line. You can also use <code>repeat N:</code> to repeat moves a few times!
+            <br>Like this:
+        </p>
+
+        <div class="code-box">
+repeat 2:
+  forward
+  turn_left
+stop
+        </div>
+
+        <textarea id="sequence-input" rows="8">repeat 2:
+  forward
+  turn_left
+stop</textarea>
+        <button class="run-button" onclick="runSequence()">▶️ Run My Program!</button>
+
+        <p class="status" id="tutorial-status">Ready when you are! Let’s make Cozmo move! 🤖</p>
+    </div>
+
+    <script>
+        function parseCommands(lines) {
+            const result = [];
+            let i = 0;
+
+            while (i < lines.length) {
+                const line = lines[i].trim();
+
+                if (line.startsWith("repeat ")) {
+                    const match = line.match(/^repeat (\d+):$/);
+                    if (match) {
+                        const count = parseInt(match[1]);
+                        i++;
+
+                        const block = [];
+                        while (i < lines.length && lines[i].startsWith("  ")) {
+                            block.push(lines[i].trim());
+                            i++;
+                        }
+
+                        for (let r = 0; r < count; r++) {
+                            result.push(...block);
+                        }
+
+                        continue;
+                    }
+                }
+
+                if (line !== "") {
+                    result.push(line);
+                }
+                i++;
+            }
+
+            return result;
+        }
+
+        async function runSequence() {
+            const rawLines = document.getElementById("sequence-input").value.split("\n");
+            const lines = parseCommands(rawLines);
+            const status = document.getElementById("tutorial-status");
+            status.innerText = "⏳ Cozmo is following your plan...";
+
+            for (let cmd of lines) {
+                status.innerText = `👉 Sending: ${cmd}`;
+                await fetch("/command", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ command: cmd })
+                });
+                await new Promise(res => setTimeout(res, 1500));
+            }
+
+            status.innerText = "✅ Hooray! Cozmo finished your program!";
+        }
+    </script>
+</body>
+</html>

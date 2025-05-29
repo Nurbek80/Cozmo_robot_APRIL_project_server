@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Cozmo Robot</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+
+<div class="status" id="connection-status">🔄 Checking local Cozmo connection...</div>
+<div style="text-align: center; margin-top: 20px;">
+    <a href="https://github.com/Nurbek80/Cozmo_robot_APRIL" class="tutorial-link" download>
+        🔽 Download Local server to work with this website
+    </a>
+    <p style="margin-top: 10px; color: #666; font-size: 14px;">
+        To control Cozmo, run the local server on your laptop.<br>
+        This site sends commands to your local server.
+    </p>
+</div>
+
+<script>
+    // Update this to match your backend repo
+    const LOCAL_BACKEND = "http://localhost:8000";
+
+    async function send(command) {
+        fetch(LOCAL_BACKEND + "/command", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('status').innerText = "✅ " + data.status;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('status').innerText = "❌ Error: Backend not found at localhost:8000";
+        });
+    }
+
+    // Ping local server every 3 seconds
+    setInterval(async () => {
+        const statusBox = document.getElementById('connection-status');
+        try {
+            const res = await fetch(LOCAL_BACKEND + "/ping");
+            if (res.ok) {
+                statusBox.innerText = "✅ Cozmo Controller Connected";
+                statusBox.style.color = "green";
+            } else {
+                throw new Error();
+            }
+        } catch {
+            statusBox.innerText = "❌ Cozmo Controller Not Found";
+            statusBox.style.color = "red";
+        }
+    }, 3000);
+</script>
+
+
+
+<body>
+    <div class="container">
+        <div class="cozmo-intro">
+        <img src="/static/cozmo.png" alt="Cozmo Robot" class="cozmo-image">
+        <div class="cozmo-text">
+            <p><strong>Meet Cozmo</strong> — a little robot with a huge personality! Cozmo is smart, curious, and ready to learn from you. He can move, light up, and even show emotions. With a bit of code, you can make him do all sorts of cool things!</p>
+            <p>This control panel lets you send fun commands to Cozmo right from your browser. Try it out, and watch him come to life!</p>
+        </div>
+        </div>
+
+        <header>
+            <h1>Cozmo Robot</h1>
+            <p>Click the buttons below to make Cozmo move, shine, or play animations.</p>
+        </header>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/tutorial" class="tutorial-link">📘 Go to Tutorial</a>
+        </div>
+
+        <section>
+            <h2>🕹️ Movement</h2>
+            <div class="button-group">
+                <button onclick="send('forward')">⬆ Forward</button>
+                <button onclick="send('backward')">⬇ Backward</button>
+                <button onclick="send('turn_left')">⬅ Turn Left</button>
+                <button onclick="send('turn_right')">➡ Turn Right</button>
+                <button onclick="send('stop')">⏹ Stop</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>💡 Lights</h2>
+            <div class="button-group">
+                <button onclick="send('light_on')">💡 On</button>
+                <button onclick="send('light_off')">💡 Off</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>🎭 Animations</h2>
+            <div class="button-group">
+                <button class="anim-happy" onclick="send('anim_happy')">😊 Happy</button>
+                <button class="anim-angry" onclick="send('anim_angry')">😠 Angry</button>
+                <button class="anim-look" onclick="send('anim_look')">🔍 Look Around</button>
+            </div>
+        </section>
+
+        <div class="status" id="status">Ready to command Cozmo...</div>
+    </div>
+
+    <!-- ✅ Подключаем JavaScript -->
+    <script src="/static/script.js"></script>
+
+
+
+</body>
+</html>
